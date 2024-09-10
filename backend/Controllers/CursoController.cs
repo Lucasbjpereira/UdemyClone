@@ -1,12 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using UdemyCloneBackend.Data;
 using UdemyCloneBackend.Models;
-using System.Linq;
+using UdemyCloneBackend.Models.DTO;
 
 namespace UdemyCloneBackend.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class CursoController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -16,19 +18,34 @@ namespace UdemyCloneBackend.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public IActionResult GetCursos()
+        [HttpPost]
+        [Authorize]  // Adiciona a autorização
+        public async Task<IActionResult> CreateCurso([FromBody] CursoCreateDTO cursoDto)
         {
-            var cursos = _context.Cursos.ToList();
-            return Ok(cursos);
+            var curso = new Curso
+            {
+                Nome = cursoDto.Nome,
+                Descricao = cursoDto.Descricao,
+                Preco = cursoDto.Preco
+            };
+
+            _context.Cursos.Add(curso);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetCurso), new { id = curso.Id }, curso);
         }
 
-        [HttpPost]
-        public IActionResult AddCurso(Curso curso)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Curso>> GetCurso(int id)
         {
-            _context.Cursos.Add(curso);
-            _context.SaveChanges();
-            return Ok(curso);
+            var curso = await _context.Cursos.FindAsync(id);
+
+            if (curso == null)
+            {
+                return NotFound();
+            }
+
+            return curso;
         }
     }
 }

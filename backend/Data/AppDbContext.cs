@@ -7,7 +7,7 @@ namespace UdemyCloneBackend.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        // Definir seus DbSets aqui
+        public DbSet<User> Users { get; set; }  // Adicionando Users ao contexto
         public DbSet<Curso> Cursos { get; set; }
     }
 }
